@@ -46,13 +46,11 @@ class Connection:
             cur.execute("SELECT * FROM movies WHERE name=?", (name,))
             if cur.fetchone() is not None:
                 return False
-            
+
             cur.execute("SELECT * FROM movies WHERE movie_title=?", (title,))
-            if cur.fetchone() is not None:
-                return True
-            else:
+            if cur.fetchone() is None:
                 cur.execute("INSERT INTO movies VALUES (?, ?)", (name, title))
-                return True
+            return True
             
 
 def scrap_page(c=Connection(SQL_DB_LOCATION)):
@@ -60,17 +58,17 @@ def scrap_page(c=Connection(SQL_DB_LOCATION)):
     count = 1
 
     while True:
-        url = "https://www.scnsrc.me/category/films/bluray/page/{}/".format(count)
+        url = f"https://www.scnsrc.me/category/films/bluray/page/{count}/"
         count += 1
 
         if count > 200:
             break
 
-        print "Running on {}".format(url)
+        url = "https://www.scnsrc.me/category/films/bluray/page/{}/".format(count)
         req = requests.get(url)
 
         if req.status_code != 200:
-            print("[!] Recieved {} from {}... exiting".format(req.status_code, url))
+            print(f"[!] Recieved {req.status_code} from {url}... exiting")
             exit(-1)
 
         movie_list = [".".join(movie.split()).lower() for movie in re.findall("title=\"Goto (.*?)\"", req.text)]
